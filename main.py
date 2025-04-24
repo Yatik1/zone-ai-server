@@ -32,4 +32,4 @@ def chat(prompt:Prompt):
         messages=[{"role":"user", "content": prompt.message}]
     )
 
-    return {"query":prompt.message,"response": response.choices[0].message.content}
+    return {"user":prompt.message,"ai": response.choices[0].message.content}
