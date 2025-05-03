@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from prompts.friendly_prompt import friendly_response
 from prompts.professional_prompt import pro_prompt
-from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
@@ -71,7 +71,11 @@ async def upload_file(file:UploadFile = File(...),message:str = Form(...)):
     with open(file_location, "wb+") as file_object:
         file_object.write(await file.read())
 
-    loader = TextLoader(file_location)
+    if file.filename.endswith(".pdf"):
+        loader = PyPDFLoader(file_location)
+    else:
+        loader = TextLoader(file_location)
+
     doc = loader.load() 
 
     text_splitter = RecursiveCharacterTextSplitter(
@@ -113,13 +117,23 @@ async def upload_file(file:UploadFile = File(...),message:str = Form(...)):
         The chunks that are given to you are already embedded from the vectors. All you have to do is to carfully analyse and understands these chunks,
         and then give a response to the user's query based on your analysis and understanding.
 
+        See you also have to understand which file is document and pdf. Since both will have different metadata and concept. 
+
         The chunks are given below:
         {relevant_chunks}
+
+                
+        So if the question is from the document, you will asnwer in particular format :- 
+         - According to the document provided, {{document_name}} the answer is {{whatever answer you have found}}
+
+        But in the case of pdf, you will also have to write down the page number of the relevant chunk you have found relevant
 
         The Rules you have to follow when giving responses:
         - You should first read, analyse and understand the chunks given to you.
         - Then you will read, analyse and understand the query that user gave. You will understand that what user is actually asking.
         - Then you will give a response to the user based on you analysis and understanding of the chunks you are given and the query that user gave.
+        - Also analyse what kind of file did the user gave. If file is document then generate response accordingly and if file is pdf then return different response with the page number.
+
 
     """
 
