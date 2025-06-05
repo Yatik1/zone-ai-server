@@ -10,7 +10,7 @@ client = OpenAI(
 
 def get_friendly_responses(message:str):
     response = client.chat.completions.create(
-        model=MODEL_NAME,
+        model=MODEL_NAME, 
         messages=[
             {"role": "system", "content": friendly_response},
             {"role":"user", "content":message}
