@@ -41,8 +41,29 @@ async def chat(prompt:BasicPrompt):
     return {"user":{"message":prompt.message},"ai":ai_response}
 
 @app.post("/ask")
-def detailed_response(prompt:ProPrompt):
+async def detailed_response(prompt:ProPrompt):
     ai_response = get_detailed_responses(prompt.query)
+
+    chat_id = prompt.chat_id
+
+    message_payload = {
+        "user_id":prompt.user_id,
+        "user_query": prompt.query,
+        "ai_response" : ai_response,
+        "chat" : chat_id
+    }
+
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"http://localhost:8001/api/messages/{chat_id}",
+                json = message_payload
+            )
+            print(f"Message had been stored in the database {response.status_code}")
+        except httpx.RequestError as e:
+            print(f"Error posting message to the database : {e}")
+
     return {"user":{"message": prompt.query},"ai":ai_response}
 
 @app.post("/upload_file")
