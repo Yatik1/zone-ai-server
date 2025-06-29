@@ -1,31 +1,43 @@
 import hashlib
 from openai import OpenAI
 from config import GEMINI_SECRET_KEY, QDRANT_URL, MODEL_NAME, API_KEY
-from typing import Tuple
-from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
+import requests
+from tempfile import NamedTemporaryFile
 
 client = OpenAI(
     api_key=API_KEY,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
-def save_uploaded_file(file_content:bytes, filename:str) -> Tuple[str, Path]:
-    file_hash=hashlib.md5(file_content).hexdigest()
-    path = Path(__file__).parent.parent / "upload"
-    path.mkdir(exist_ok=True)
+# def save_uploaded_file(file_content:bytes, filename:str) -> Tuple[str, Path]:
+#     file_hash=hashlib.md5(file_content).hexdigest()
+#     path = Path(__file__).parent.parent / "upload"
+#     path.mkdir(exist_ok=True)
     
-    file_path = path / filename
-    file_path.write_bytes(file_content)
+#     file_path = path / filename
+#     file_path.write_bytes(file_content)
 
-    return file_hash, file_path
+#     return file_hash, file_path
 
-def process_file_and_query(file_path:Path, file_hash:str, message:str,filename:str):
+def process_file_and_query(presigned_url:str, message:str,filename:str):
+
+    response = requests.get(presigned_url)
+    response.raise_for_status() 
+
+    file_content = response.content
+
     is_pdf = filename.endswith(".pdf")
+
+    with NamedTemporaryFile(delete=False, suffix='.pdf' if is_pdf else '.txt') as file_name:
+        file_name.write(file_content)
+        file_path = file_name.name
+
+
     loader = PyPDFLoader(file_path) if is_pdf else TextLoader(file_path)
     docs = loader.load() 
 
@@ -42,6 +54,7 @@ def process_file_and_query(file_path:Path, file_hash:str, message:str,filename:s
         google_api_key=GEMINI_SECRET_KEY
     )
 
+    file_hash = hashlib.md5(file_content).hexdigest()
     qdrant_client = QdrantClient(host="localhost", port=6333)
 
     if not qdrant_client.collection_exists(f"{file_hash}_embeddings"):
