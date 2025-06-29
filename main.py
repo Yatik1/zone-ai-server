@@ -2,8 +2,11 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from schema.schemas import BasicPrompt,ProPrompt
 from services.chat_service import get_friendly_responses, get_detailed_responses
-from services.file_service import save_uploaded_file, process_file_and_query
+from services.file_service import process_file_and_query
 import httpx
+import boto3
+import uuid as uuid
+from config import BUCKET_NAME, REGION_NAME, ACCESS_KEY, AWS_SECRET_KEY
 
 app = FastAPI()
 
@@ -12,6 +15,44 @@ app.add_middleware(
     allow_origins=["*"], allow_credentials=True,
     allow_methods=["*"], allow_headers=["*"]
 )
+
+s3_client = boto3.client(
+    's3',
+    region_name=REGION_NAME,
+    aws_access_key_id=ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY
+)
+
+def upload_file_to_s3(file_content:bytes, file_name:str) -> str:
+    unique_file_name = f"{uuid.uuid4()}_{file_name}"
+    try:
+        s3_client.put_object(
+            Bucket=BUCKET_NAME,
+            Key=unique_file_name,
+            Body=file_content
+        )
+
+        return unique_file_name
+    except Exception as e:
+        print(f"Error uploading file to S3: {e}")
+        return None
+
+def generate_presigned_url(s3_key:str, expiry:int) -> str:
+    try:
+        url=s3_client.generate_presigned_url(
+            'get_object',
+            Params={
+                'Bucket':BUCKET_NAME,
+                'Key':s3_key
+            },
+            ExpiresIn=expiry
+        )
+        
+        return url
+    except Exception as e:
+        print(f"Error generating presigned URL: {e}")
+        return None
+
 
 @app.post("/chats")
 async def chat(prompt:BasicPrompt):
@@ -68,8 +109,11 @@ async def detailed_response(prompt:ProPrompt):
 
 @app.post("/upload_file")
 async def upload_file(file:UploadFile = File(...), message:str = Form(...)):
+
     content = await file.read()
-    file_hash, saved_path = save_uploaded_file(content, file.filename)
-    ai_response = process_file_and_query(saved_path, file_hash, message,file.filename)
+
+    s3_key = upload_file_to_s3(content,file.filename)
+    presigned_url = generate_presigned_url(s3_key, expiry=600)
+    ai_response = process_file_and_query(presigned_url, message, file.filename)
     
     return {"user":{"message":message, "file":file.filename},"ai":ai_response}
