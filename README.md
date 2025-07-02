@@ -1,4 +1,4 @@
-# 🌀 Zone – Context-Aware AI Agent Platform
+# 🌀 Zone – Context-Aware AI Agent
 
 **Zone** is an AI agent platform designed to deliver intelligent, context-aware assistance. It combines a modular frontend, an LLM-powered reasoning service, and a data backend — each as an independently deployable microservice.
 
