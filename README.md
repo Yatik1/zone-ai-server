@@ -1,12 +1,8 @@
-# 🌀 Zone – AI-Powered Modular Web Platform
+# 🌀 Zone – Context-Aware AI Agent Platform
 
-**Zone** is a full-stack, AI-enhanced modular platform that allows users to create dynamic interfaces powered by large language models. It is divided into three independent services:
+**Zone** is an AI agent platform designed to deliver intelligent, context-aware assistance. It combines a modular frontend, an LLM-powered reasoning service, and a data backend — each as an independently deployable microservice.
 
-- 🎨 **Frontend UI** – Drag-and-drop builder using Vite + React  
-- 🧠 **AI Server** – Provides smart contextual responses using OpenAI APIs  
-- 🗄️ **Database Server** – Manages persistent storage and authentication
-
-Each service is built and maintained in a separate repository to ensure modularity and clean architecture.
+Built for seamless UI interactions, persistent context tracking, and real-time AI responses.
 
 ---
 
@@ -14,8 +10,17 @@ Each service is built and maintained in a separate repository to ensure modulari
 
 | Service        | Description                                           | Repository Link |
 |----------------|-------------------------------------------------------|------------------|
-| **Frontend UI** | React-based canvas UI built with Vite & Tailwind CSS | [zone-ui](https://github.com/Yatik1/zone-ui) |
-| **AI Server**   | LLM-powered backend for generating AI responses       | [zone-ai-server](https://github.com/Yatik1/zone-ai-server) |
-| **DB Server**   | Handles data persistence, sessions, and auth logic   | [zone-db-server](https://github.com/Yatik1/zone-db-server) |
+| **Frontend UI** | Vite + React-based drag-and-drop interface            | [zone-ui](https://github.com/Yatik1/zone-ui) |
+| **AI Server**   | AI agent core using LLMs for reasoning & conversation | [zone-ai-server](https://github.com/Yatik1/zone-ai-server) |
+| **DB Server**   | Manages data, sessions, and user context              | [zone-db-server](https://github.com/Yatik1/zone-db-server) |
 
 ---
+
+## 🧠 What is Zone?
+
+Zone is more than just a frontend + backend + AI — it's an intelligent agent capable of:
+
+- Understanding and retaining user context over time
+- Assisting with tasks in a canvas-based interface
+- Responding intelligently using large language models (e.g., OpenAI)
+- Persisting UI state, history, and user goals across sessions
