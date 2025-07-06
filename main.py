@@ -4,9 +4,8 @@ from schema.schemas import BasicPrompt,ProPrompt
 from services.chat_service import get_friendly_responses, get_detailed_responses
 from services.file_service import process_file_and_query
 import httpx
-import boto3
 import uuid as uuid
-from config import BUCKET_NAME, REGION_NAME, ACCESS_KEY, AWS_SECRET_KEY
+from aws.s3service import upload_file_to_s3, generate_presigned_url
 
 app = FastAPI()
 
@@ -15,44 +14,6 @@ app.add_middleware(
     allow_origins=["*"], allow_credentials=True,
     allow_methods=["*"], allow_headers=["*"]
 )
-
-s3_client = boto3.client(
-    's3',
-    region_name=REGION_NAME,
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=AWS_SECRET_KEY
-)
-
-def upload_file_to_s3(file_content:bytes, file_name:str) -> str:
-    unique_file_name = f"{uuid.uuid4()}_{file_name}"
-    try:
-        s3_client.put_object(
-            Bucket=BUCKET_NAME,
-            Key=unique_file_name,
-            Body=file_content
-        )
-
-        return unique_file_name
-    except Exception as e:
-        print(f"Error uploading file to S3: {e}")
-        return None
-
-def generate_presigned_url(s3_key:str, expiry:int) -> str:
-    try:
-        url=s3_client.generate_presigned_url(
-            'get_object',
-            Params={
-                'Bucket':BUCKET_NAME,
-                'Key':s3_key
-            },
-            ExpiresIn=expiry
-        )
-        
-        return url
-    except Exception as e:
-        print(f"Error generating presigned URL: {e}")
-        return None
-
 
 @app.post("/chats")
 async def chat(prompt:BasicPrompt):
@@ -107,13 +68,36 @@ async def detailed_response(prompt:ProPrompt):
 
     return {"user":{"message": prompt.query},"ai":ai_response}
 
+
+
 @app.post("/upload_file")
-async def upload_file(file:UploadFile = File(...), message:str = Form(...)):
+async def upload_file(file:UploadFile = File(...), message:str = Form(...), userId:str = Form(...), chatId:str = Form(...)):
 
     content = await file.read()
+
+    suffix = "pdf" if file.filename.endswith(".pdf") else "txt"
 
     s3_key = upload_file_to_s3(content,file.filename)
     presigned_url = generate_presigned_url(s3_key, expiry=600)
     ai_response = process_file_and_query(presigned_url, message, file.filename)
+
+    message_payload = {
+        "user_id":userId,
+        "user_query": message,
+        "ai_response" : ai_response,
+        "chat" : chatId,
+        "fileName":file.filename,
+        "fileType": suffix
+    }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response= await client.post(
+                f"http://localhost:8001/api/messages/{chatId}",
+                json = message_payload
+            )
+            print(f"Message had been stored in the database {response.status_code}")
+        except httpx.RequestError as e:
+            print(f"Error posting file information to the database : {e}")
     
     return {"user":{"message":message, "file":file.filename},"ai":ai_response}
