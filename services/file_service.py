@@ -14,16 +14,6 @@ client = OpenAI(
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
-# def save_uploaded_file(file_content:bytes, filename:str) -> Tuple[str, Path]:
-#     file_hash=hashlib.md5(file_content).hexdigest()
-#     path = Path(__file__).parent.parent / "upload"
-#     path.mkdir(exist_ok=True)
-    
-#     file_path = path / filename
-#     file_path.write_bytes(file_content)
-
-#     return file_hash, file_path
-
 def process_file_and_query(presigned_url:str, message:str,filename:str):
 
     response = requests.get(presigned_url)
