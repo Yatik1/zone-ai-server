@@ -9,3 +9,4 @@ class ProPrompt(BaseModel):
     query:str
     chat_id:str
     user_id:str
+
