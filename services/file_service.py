@@ -1,6 +1,6 @@
 import hashlib
 from openai import OpenAI
-from config import GEMINI_SECRET_KEY, QDRANT_URL, MODEL_NAME, API_KEY
+from config import GEMINI_SECRET_KEY, MODEL_NAME, API_KEY, QDRANT_URL,QDRANT_KEY
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -45,12 +45,16 @@ def process_file_and_query(presigned_url:str, message:str,filename:str):
     )
 
     file_hash = hashlib.md5(file_content).hexdigest()
-    qdrant_client = QdrantClient(host="localhost", port=6333)
+    qdrant_client = QdrantClient(
+                        url=QDRANT_URL, 
+                        api_key=QDRANT_KEY
+                    )
 
     if not qdrant_client.collection_exists(f"{file_hash}_embeddings"):
         store = QdrantVectorStore.from_documents(
             documents=[],
             url=QDRANT_URL,
+            api_key=QDRANT_KEY,
             collection_name=f"{file_hash}_embeddings",
             embedding=embedder
         )
@@ -59,6 +63,7 @@ def process_file_and_query(presigned_url:str, message:str,filename:str):
     
     retriever = QdrantVectorStore.from_existing_collection(
         url=QDRANT_URL,
+        api_key=QDRANT_KEY,
         collection_name=f"{file_hash}_embeddings",
         embedding = embedder
     )
