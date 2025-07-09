@@ -6,6 +6,7 @@ from services.file_service import process_file_and_query
 import httpx
 import uuid as uuid
 from aws.s3service import upload_file_to_s3, generate_presigned_url
+from config import BACKEND_DB
 
 app = FastAPI()
 
@@ -32,7 +33,7 @@ async def chat(prompt:BasicPrompt):
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                f"http://localhost:8001/api/messages/{chat_id}",
+                f"{BACKEND_DB}/api/messages/{chat_id}",
                 json = message_payload
             )
             print(f"Message had been stored in the database {response.status_code}")
@@ -59,7 +60,7 @@ async def detailed_response(prompt:ProPrompt):
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                f"http://localhost:8001/api/messages/{chat_id}",
+                f"{BACKEND_DB}/api/messages/{chat_id}",
                 json = message_payload
             )
             print(f"Message had been stored in the database {response.status_code}")
@@ -93,7 +94,7 @@ async def upload_file(file:UploadFile = File(...), message:str = Form(...), user
     async with httpx.AsyncClient() as client:
         try:
             response= await client.post(
-                f"http://localhost:8001/api/messages/{chatId}",
+                f"{BACKEND_DB}/api/messages/{chatId}",
                 json = message_payload
             )
             print(f"Message had been stored in the database {response.status_code}")
