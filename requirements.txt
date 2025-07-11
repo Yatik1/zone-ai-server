@@ -4,6 +4,8 @@ aiosignal==1.3.2
 annotated-types==0.7.0
 anyio==4.9.0
 attrs==25.3.0
+boto3==1.38.44
+botocore==1.38.44
 cachetools==5.5.2
 certifi==2025.1.31
 charset-normalizer==3.4.1
@@ -28,6 +30,7 @@ httpx-sse==0.4.0
 hyperframe==6.1.0
 idna==3.10
 jiter==0.9.0
+jmespath==1.0.1
 jsonpatch==1.33
 jsonpointer==3.0.0
 langchain==0.3.24
@@ -54,6 +57,8 @@ pyasn1_modules==0.4.2
 pydantic==2.11.3
 pydantic-settings==2.9.1
 pydantic_core==2.33.1
+pypdf==5.4.0
+python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 python-multipart==0.0.20
 PyYAML==6.0.2
@@ -61,6 +66,8 @@ qdrant-client==1.14.2
 requests==2.32.3
 requests-toolbelt==1.0.0
 rsa==4.9.1
+s3transfer==0.13.0
+six==1.17.0
 sniffio==1.3.1
 SQLAlchemy==2.0.40
 starlette==0.46.2
