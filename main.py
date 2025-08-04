@@ -16,6 +16,10 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"]
 )
 
+@app.get("/ping")
+async def ping():
+    return {"message": "pong"}
+
 @app.post("/chats")
 async def chat(prompt:BasicPrompt):
     ai_response = get_friendly_responses(prompt.message)
@@ -28,7 +32,6 @@ async def chat(prompt:BasicPrompt):
         "ai_response" : ai_response,
         "chat" : chat_id
     }
-
 
     async with httpx.AsyncClient() as client:
         try:
